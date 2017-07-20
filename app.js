@@ -1,5 +1,7 @@
 var express = require("express"),
 	bodyParser = require('body-parser'),
+	passport = require('passport');
+	localStrategy = require('passport-local');
 	app = express(),
 	mongoose =  require("mongoose"),
 	Campground = require("./models/campground");
@@ -9,7 +11,26 @@ var express = require("express"),
 	app.use(bodyParser.urlencoded({extended: true}));	
 	app.set("view engine","ejs");
 	app.use(express.static(__dirname+"/public"))
+
+	User = require("./models/user");
 	seedDB();
+
+	//passport configuration
+	app.use(require("express-session")({
+		secret: "I am a World Class Developer",
+		resave: false,
+		saveUninitialized: false
+	}));
+	app.use(passport.initialize());
+	app.use(passport.session());
+	passport.use(new localStrategy(User.authenticate()));
+	passport.serializeUser(User.serializeUser());
+	passport.deserializeUser(User.deserializeUser());
+
+	app.use(function(req, res, next)	{
+		res.locals.currentUser = req.user;
+		next();
+	})
 
 
 app.get("/", function(req, res){
@@ -56,7 +77,7 @@ app.get("/campgrounds/:id", function(req, res)	{
 	})
 })
 
-app.get("/campgrounds/:id/comments/new", function(req, res)	{
+app.get("/campgrounds/:id/comments/new", isLoggedIn, function(req, res)	{
 	Campground.findById(req.params.id, function(err, campground)	{
 		if (err)	{
 			console.log(err);
@@ -86,6 +107,54 @@ app.post("/campgrounds/:id/comments", function(req, res)	{
 
 });
 
-app.listen(3003, function()	{
+//Authentication Routes
+
+//Display user registration form
+app.get("/register", function(req, res)	{
+	res.render("register");
+});
+
+//Handle user registration
+app.post("/register", function(req, res)	{
+	var newUser = new User({username: req.body.username});
+	User.register(newUser, req.body.password, function(err, user)	{
+		if(err)	{
+			console.log(err);
+			return res.render("register");
+		}
+
+		passport.authenticate("local")(req, res, function()	{
+			res.redirect("/campgrounds");
+		});
+	});
+});
+
+//Display the login form
+app.get("/login", function(req, res)	{
+	res.render("login");
+});
+
+//Handle user login
+app.post("/login", passport.authenticate("local",{
+	successRedirect: "/campgrounds",
+	failureRedirect: "/login"
+}),function(req, res)	{
+
+});
+
+//Handle user logout
+app.get("/logout", function(req, res)	{
+	req.logout();
+	res.redirect("/campgrounds");
+})
+
+function isLoggedIn(req, res, next)	{
+	if(req.isAuthenticated())	{
+		return next();
+	}
+	res.redirect("/login");
+}
+
+app.listen(3001, function()	{
 	console.log("The summer camp server is up");
 })
