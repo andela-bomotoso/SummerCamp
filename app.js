@@ -3,6 +3,7 @@ var express = require("express"),
 	passport = require('passport'),
 	localStrategy = require('passport-local'),
 	methodOverride = require('method-override'),
+	flash = require('connect-flash');
 	app = express(),
 	mongoose =  require("mongoose"),
 	Campground = require("./models/campground"),
@@ -20,6 +21,7 @@ var express = require("express"),
 	app.set("view engine","ejs");
 	app.use(express.static(__dirname+"/public"));
 	app.use(methodOverride("_method"));
+	app.use(flash());
 
 	User = require("./models/user");
 	//seedDB();
@@ -40,6 +42,8 @@ var express = require("express"),
 
 	app.use(function(req, res, next)	{
 		res.locals.currentUser = req.user;
+		res.locals.success = req.flash("success");
+		res.locals.error =req.flash("error");
 		next();
 	})
 
