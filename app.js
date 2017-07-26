@@ -15,7 +15,8 @@ var express = require("express"),
 		indexRoutes = require("./routes/index")
 
 
-	mongoose.connect("mongodb://localhost/summercamp");
+	//mongoose.connect("mongodb://localhost/summercamp");
+	mongoose.connect("mongodb://grace:password@ds125053.mlab.com:25053/summercamp");
 
 	app.use(bodyParser.urlencoded({extended: true}));	
 	app.set("view engine","ejs");
