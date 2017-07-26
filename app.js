@@ -14,7 +14,6 @@ var express = require("express"),
 		campgroundRoutes = require("./routes/campgrounds"),
 		indexRoutes = require("./routes/index")
 
-
 	//mongoose.connect("mongodb://localhost/summercamp");
 	mongoose.connect("mongodb://grace:password@ds125053.mlab.com:25053/summercamp");
 
@@ -52,6 +51,4 @@ var express = require("express"),
 	app.use(commentRoutes);
 	app.use(campgroundRoutes);
 
-app.listen(3000, function()	{
-	console.log("The summer camp server is up");
-})
+app.listen(process.env.PORT, process.env.IP);
